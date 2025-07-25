@@ -1,4 +1,9 @@
 #include "systemcalls.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 /**
  * @param cmd the command to execute with system()
@@ -16,6 +21,9 @@ bool do_system(const char *cmd)
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
+    int rc = system(cmd);
+    if (rc)
+        return false;
 
     return true;
 }
@@ -59,6 +67,29 @@ bool do_exec(int count, ...)
  *
 */
 
+    int ret;
+    int childstatus;
+    ret = fork();
+    if (ret < 0)
+    {
+        printf("Fork failed");
+        return false;
+    }
+    
+    if (!ret) // child
+    {
+        if (execv(command[0], command) == -1)
+            _exit(127); // Exit with a specific status if exec fails
+    }
+    else if (ret > 0) // parent, ret is child pid
+    {
+        waitpid(ret, &childstatus, 0);
+        int return_value = WEXITSTATUS(childstatus);
+        printf("child end with %d\r\n", return_value);
+        if (return_value)
+            return false;
+    }
+
     va_end(args);
 
     return true;
@@ -92,7 +123,40 @@ bool do_exec_redirect(const char *outputfile, int count, ...)
  *   The rest of the behaviour is same as do_exec()
  *
 */
+    int fd = open(outputfile, O_WRONLY|O_TRUNC|O_CREAT, 0644);
+    if (fd <=0)
+    {
+        printf("Fail to open file\r\n");
+        return false;
+    }
 
+    int ret = fork();
+    if (ret < 0)
+    {
+        printf("Fail to fork\r\n");
+        return false;
+    }
+    else if (!ret) // child
+    {
+        if (dup2(fd, STDOUT_FILENO) < 0)
+        {
+            exit(-1);
+        }
+
+        if (execv(command[0], command))
+            exit(-1);
+    }
+    else
+    {
+        int childstatus;
+        waitpid(ret, &childstatus, 0);
+        int return_value = WEXITSTATUS(childstatus);
+        printf("child end with %d\r\n", return_value);
+        if (return_value)
+            return false;
+    }
+
+    close(fd);
     va_end(args);
 
     return true;
