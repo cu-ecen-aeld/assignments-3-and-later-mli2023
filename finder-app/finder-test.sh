@@ -5,9 +5,6 @@
 # clean previous build artifacts
 rm *.o *.bin *.out writer
 
-# compile writer.c with native compiler
-make
-
 set -e
 set -u
 
