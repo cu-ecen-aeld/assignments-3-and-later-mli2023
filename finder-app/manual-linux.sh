@@ -7,7 +7,7 @@ set -u
 
 OUTDIR=/tmp/aeld
 KERNEL_REPO=git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
-KERNEL_VERSION=v5.1.10
+KERNEL_VERSION=v5.15.163
 BUSYBOX_VERSION=1_33_1
 FINDER_APP_DIR=$(realpath $(dirname $0))
 ARCH=arm64
@@ -36,9 +36,20 @@ if [ ! -e ${OUTDIR}/linux-stable/arch/${ARCH}/boot/Image ]; then
 
     # TODO: Add your kernel build steps here
     ########################################################################
-    # there is error: duplicate definition of yylloc when building the kernel,
-    # the issue is fixed by prefixing "extern" to YYSTYPE yylloc in files:
-    #   scripts/dtc/dtc-lexer.l  and scripts/dtc/dtc-lexer.lex.c.bak
+    if [ ${KERNEL_VERSION} == "v5.1.10" ]
+    then
+        # there is error: duplicate definition of yylloc when building the kernel,
+        # the issue is fixed by prefixing "extern" to YYSTYPE yylloc in files:
+        #   scripts/dtc/dtc-lexer.l
+        if grep -q "extern YYLTYPE yylloc" scripts/dtc/dtc-lexer.l
+        then
+            echo "Already fixed"
+        else
+            echo "Prefixing extern to YYLTYPE yylloc"
+            sed -i 's/YYLTYPE yylloc/extern YYLTYPE yylloc/g' scripts/dtc/dtc-lexer.l
+        fi
+    fi
+
     echo "Building the kernel"
     make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} mrproper
     make ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} defconfig
