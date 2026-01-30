@@ -1,0 +1,11 @@
+/tmp/aeld-data/mli202310.txt:1
+/tmp/aeld-data/mli20239.txt:1
+/tmp/aeld-data/mli20238.txt:1
+/tmp/aeld-data/mli20237.txt:1
+/tmp/aeld-data/mli20236.txt:1
+/tmp/aeld-data/mli20235.txt:1
+/tmp/aeld-data/mli20234.txt:1
+/tmp/aeld-data/mli20233.txt:1
+/tmp/aeld-data/mli20232.txt:1
+/tmp/aeld-data/mli20231.txt:1
+The number of files are 10 and the number of matching lines are 10
